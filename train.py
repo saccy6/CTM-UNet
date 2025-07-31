@@ -44,7 +44,7 @@ def parse_args():
 
     # model
     parser.add_argument('--arch', '-a', metavar='ARCH',
-                        default='MixUNet')  ### Rolling_Unet_S, Rolling_Unet_M, Rolling_Unet_L
+                        default='CTM-UNet')  ### Rolling_Unet_S, Rolling_Unet_M, Rolling_Unet_L
     parser.add_argument('--deep_supervision', default=False, type=str2bool)
     parser.add_argument('--input_channels', default=3, type=int, help='input channels')
     parser.add_argument('--num_classes', default=1, type=int, help='number of classes')
