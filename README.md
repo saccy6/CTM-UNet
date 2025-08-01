@@ -54,7 +54,11 @@ The code is stable while using Python 3.6.13, CUDA >=10.1
 **If you prefer pip, install following versions:**
 
 timm==0.3.2
+
 mmcv-full==1.2.7
+
 torch==1.7.1
+
 torchvision==0.8.2
+
 opencv-python==4.5.1.48
