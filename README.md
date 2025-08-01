@@ -3,6 +3,7 @@ This is This is the official code for the paper "CTM-UNet: A medical image segme
 
 
 **Data Format**
+
 Refer to the UNeXt codes if you run into problems.
 inputs
 └── <dataset name>
@@ -27,10 +28,12 @@ inputs
 
             
 **Using the code**
-he code is stable while using Python 3.6.13, CUDA >=10.1
+
+The code is stable while using Python 3.6.13, CUDA >=10.1
 
 
 **If you prefer pip, install following versions:**
+
 timm==0.3.2
 mmcv-full==1.2.7
 torch==1.7.1
