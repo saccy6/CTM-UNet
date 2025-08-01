@@ -5,26 +5,45 @@ This is This is the official code for the paper "CTM-UNet: A medical image segme
 **Data Format**
 
 Refer to the UNeXt codes if you run into problems.
+
 inputs
 └── <dataset name>
+
     ├── images
+    
     |   ├── 001.png
+    
     │   ├── 002.png
+    
     │   ├── 003.png
+    
     │   ├── ...
+    
     |
+    
     └── masks
+    
         ├── 0
+        
         |   ├── 001.png
+        
         |   ├── 002.png
+        
         |   ├── 003.png
+        
         |   ├── ...
+        
         |
         └── 1
+        
             ├── 001.png
+            
             ├── 002.png
+            
             ├── 003.png
+            
             ├── ...
+            
 
             
 **Using the code**
