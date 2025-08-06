@@ -8,7 +8,7 @@ import numpy as np
 
 # 加载预训练的ResNet-50模型
 model = models.resnet50(pretrained=False)
-checkpoint = torch.load('D:/电脑文档/跑过的code/UNeXt-400epoch/models/model_ISIC2018_UNext_woDS.pth')
+checkpoint = torch.load('')
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
@@ -106,57 +106,6 @@ if __name__ == "__main__":
     plt.axis('off')
     plt.show()
 
-# import tensorflow as tf
-# import numpy as np
-# import matplotlib.pyplot as plt
-# from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
-#
-# # 使用ResNet-50作为编码器
-# model = tf.keras.applications.ResNet50(weights='imagenet', include_top=True)
-#
-# # 加载图像并进行预处理
-# def load_and_preprocess_image(image_path):
-#     img = tf.keras.preprocessing.image.load_img(image_path, target_size=(224, 224))
-#     img_array = tf.keras.preprocessing.image.img_to_array(img)
-#     img_array = np.expand_dims(img_array, axis=0)
-#     img_array = preprocess_input(img_array)
-#     return img_array
-#
-# # 使用Grad-CAM可视化图像区域重要性
-# def visualize_grad_cam(model, img_array, class_index, layer_name):
-#     grad_model = tf.keras.models.Model([model.inputs], [model.get_layer(layer_name).output, model.output])
-#
-#     with tf.GradientTape() as tape:
-#         conv_outputs, predictions = grad_model(img_array)
-#         class_output = predictions[:, class_index]
-#
-#     grads = tape.gradient(class_output, conv_outputs)
-#     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-#
-#     conv_outputs = conv_outputs[0]
-#     heatmap = tf.reduce_mean(tf.multiply(conv_outputs, pooled_grads), axis=-1)
-#
-#     heatmap = np.maximum(heatmap, 0)
-#     heatmap /= np.max(heatmap)
-#
-#     plt.imshow(heatmap)
-#     plt.show()
-#
-# # 图像路径
-# image_path = "path_to_your_image.jpg"  # 替换为你的图像路径
-#
-# # 加载图像并进行预处理
-# img_array = load_and_preprocess_image(image_path)
-#
-# # 使用ResNet-50进行预测
-# predictions = model.predict(img_array)
-# decoded_predictions = decode_predictions(predictions, top=5)[0]
-# print(decoded_predictions)
-#
-# # 获取最可能的类别索引
-# class_index = np.argmax(predictions[0])
-# print("Most likely class:", decoded_predictions[0])
-#
-# # 使用Grad-CAM可视化图像区域重要性
-# layer_name = 'conv5_block3_out'  # 选择ResNet-50中的某个卷积层
+
 # visualize_grad_cam(model, img_array, class_index, layer_name)
+
