@@ -176,9 +176,9 @@ class DWConv(nn.Module):
 
 
 
-# DSE
+# ESE
 
-class DSE(nn.Module):
+class ESE(nn.Module):
     def __init__(self, channel, reduction=2):
         super(DSE, self).__init__()
 
@@ -281,8 +281,8 @@ class _ScaleModule(nn.Module):
     def forward(self, x):
         return torch.mul(self.weight, x)
 
-# WTConv全局滤波器
-class GlobalFilter(nn.Module):
+# WT
+class WT(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=5, stride=1, bias=True, wt_levels=1, wt_type='db1'):
         super(GlobalFilter, self).__init__()
 
@@ -453,7 +453,7 @@ class MSA(nn.Module):
 
 
 
-#CSCA
+#CSSA
 class MLP(nn.Module):
     def __init__(self, dim, mlp_ratio=4.):
         super().__init__()
@@ -471,7 +471,7 @@ class MLP(nn.Module):
         x = x + self.act(self.pos(x))
         x = self.fc2(x)
         return x
-class csa(nn.Module):
+class CSSA(nn.Module):
     def __init__(self, dim):
         super().__init__()
 
@@ -508,41 +508,8 @@ class CSA(nn.Module):
         x = x + self.drop_path(self.layer_scale_2.unsqueeze(-1).unsqueeze(-1) * self.mlp(x))
         return x
 
-class ResBlock(nn.Module):
-    def __init__(self, indim, outdim=None, stride=1):
-        super(ResBlock, self).__init__()
-        if outdim == None:
-            outdim = indim
-        if indim == outdim and stride == 1:
-            self.downsample = None
-        else:
-            self.downsample = nn.Conv2d(indim, outdim, kernel_size=3, padding=1, stride=stride)
-
-        self.conv1 = nn.Conv2d(indim, outdim, kernel_size=3, padding=1, stride=stride)
-        self.conv2 = nn.Conv2d(outdim, outdim, kernel_size=3, padding=1)
-
-    def forward(self, x):
-        r = self.conv1(F.relu(x))
-        r = self.conv2(F.relu(r))
-
-        if self.downsample is not None:
-            x = self.downsample(x)
-
-        return x + r
 
 
-def calc_uncertainty(score):
-
-    # seg shape: bs, obj_n, h, w
-    # print("xxxxxxxxxxxxxxxxxx")
-    # print(score.shape)
-    score_top = score.topk(k=1, dim=1)
-    # print(score_top[0].shape)
-    # print("zzzzzz")
-    # print(type(score_top[:, 0]))
-    uncertainty = score_top[0] / (score + 1e-8)  # bs, h, w   M1/M2
-    uncertainty = torch.exp(1 - uncertainty)  # bs, 1, h, w   不确定映射 U = exp(1-M1/M2)
-    return uncertainty  # 返回 不确定映射 U
 class CTM-UNet(nn.Module):
     def __init__(self, num_classes, input_channels=3, deep_supervision=False, img_size=256,
                  num_heads=[1, 2, 4, 8], qkv_bias=False, qk_scale=None, drop_rate=0.,
@@ -654,32 +621,20 @@ class CTM-UNet(nn.Module):
         self.MSA4 = MSA(dim=self.filters[3], scales=5)
         self.MSA5 = MSA(dim=self.filters[4], scales=6)
         # CSA
-        self.CSA1 = CSA(dim=self.filters[0],mlp_ratio=4, drop_path=0)#,mlp_ratio=4, drop_path=0
-        self.CSA2 = CSA(dim=self.filters[1],mlp_ratio=4, drop_path=0)
-        self.CSA3 = CSA(dim=self.filters[2],mlp_ratio=4, drop_path=0)
-        self.CSA4 = CSA(dim=self.filters[3],mlp_ratio=4, drop_path=0)
-        self.CSA5 = CSA(dim=self.filters[4],mlp_ratio=4, drop_path=0)
+        self.CSA1 = CSSA(dim=self.filters[0],mlp_ratio=4, drop_path=0)#,mlp_ratio=4, drop_path=0
+        self.CSA2 = CSSA(dim=self.filters[1],mlp_ratio=4, drop_path=0)
+        self.CSA3 = CSSA(dim=self.filters[2],mlp_ratio=4, drop_path=0)
+        self.CSA4 = CSSA(dim=self.filters[3],mlp_ratio=4, drop_path=0)
+        self.CSA5 = CSSA(dim=self.filters[4],mlp_ratio=4, drop_path=0)
         # CA
-        self.att1 = DSE(self.filters[0])
-        self.att2 = DSE(self.filters[1])
-        self.att3 = DSE(self.filters[2])
-        self.att4 = DSE(self.filters[3])
-        self.att5 = DSE(self.filters[4])
+        self.att1 = ESE(self.filters[0])
+        self.att2 = ESE(self.filters[1])
+        self.att3 = ESE(self.filters[2])
+        self.att4 = ESE(self.filters[3])
+        self.att5 = ESE(self.filters[4])
         # FD
         self.sizes = [img_size // 2, img_size // 4, img_size // 8, img_size // 16, img_size // 32]
-        self.FD4 = GlobalFilter(self.filters[3],out_channels=self.filters[3])
-
-        # refine
-        self.local_avg = nn.AvgPool2d(7, stride=1, padding=3)
-        self.local_max = nn.MaxPool2d(7, stride=1, padding=3)
-        self.local_convFM = nn.Conv2d(2, 1, kernel_size=3, padding=1, stride=1)
-        self.local_ResMM = ResBlock(1, 1)
-        self.local_pred2 = nn.Conv2d(1, 1, kernel_size=3, padding=1, stride=1)
-        self.proj = nn.Conv2d(2, 1, kernel_size=3, padding=1, stride=1)
-        self.local_pred3 = nn.Conv2d(1, 1, kernel_size=1, padding=0, stride=1)
-        self.local_pred4 = nn.Conv2d(1, 1, kernel_size=1, padding=0, stride=1)
-
-        self.refine = nn.Conv2d(2, 1, kernel_size=3, padding=1, stride=1)
+        self.FD4 = WT(self.filters[3],out_channels=self.filters[3])
 
 
         _, _, H, W = out.shape
@@ -702,7 +657,7 @@ class CTM-UNet(nn.Module):
 
         out = self.MSA2(out)
 
-        out = self.CSA2(out)
+        out = self.CSSA2(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.block2):
@@ -715,7 +670,7 @@ class CTM-UNet(nn.Module):
         ### Stage 3
         out = F.relu(F.max_pool2d(self.ebn3(self.encoder3(out)), 2, 2))
         out = self.MSA3(out)
-        out = self.CSA3(out)
+        out = self.CSSA3(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.block3):
@@ -729,7 +684,7 @@ class CTM-UNet(nn.Module):
         out = F.relu(F.max_pool2d(self.ebn4(self.encoder4(out)), 2, 2))
         out = self.MSA4(out)
         # print(out.shape)
-        out = self.CSA4(out)
+        out = self.CSSA4(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.block4):
@@ -745,7 +700,7 @@ class CTM-UNet(nn.Module):
         out = F.relu(F.max_pool2d(self.ebn5(self.encoder5(out)), 2, 2))
         out = self.MSA5(out)
         # print(out.shape)
-        out = self.CSA5(out)
+        out = self.CSSA5(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.block5):
@@ -759,7 +714,7 @@ class CTM-UNet(nn.Module):
         out = torch.add(out, t4)
 
         out = self.MSA4(out)
-        out = self.CSA4(out)
+        out = self.CSSA4(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.dblock1):
@@ -773,7 +728,7 @@ class CTM-UNet(nn.Module):
         out = torch.add(out, t3)
 
         out = self.MSA3(out)
-        out = self.CSA3(out)
+        out = self.CSSA3(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.dblock2):
@@ -787,7 +742,7 @@ class CTM-UNet(nn.Module):
         out = torch.add(out, t2)
 
         out = self.MSA2(out)
-        out = self.CSA2(out)
+        out = self.CSSA2(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.dblock3):
@@ -801,7 +756,7 @@ class CTM-UNet(nn.Module):
         out = torch.add(out, t1)
 
         out = self.MSA1(out)
-        out = self.CSA1(out)
+        out = self.CSSA1(out)
         _, _, H, W = out.shape
         out = out.flatten(2).transpose(1, 2)
         for i, blk in enumerate(self.dblock4):
