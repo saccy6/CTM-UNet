@@ -38,13 +38,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--name', default=None, help='model name: (default: arch+timestamp)')
-    parser.add_argument('--epochs', default=260, type=int, metavar='N', help='number of total epochs to run')
+    parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs to run')
     parser.add_argument('-b', '--batch_size', default=8, type=int, metavar='N', help='mini-batch size(default: 8)')
     parser.add_argument('--num_workers', default=8, type=int)
 
     # model
     parser.add_argument('--arch', '-a', metavar='ARCH',
-                        default='CTM-UNet')  ### Rolling_Unet_S, Rolling_Unet_M, Rolling_Unet_L
+                        default='CTM-UNet') 
     parser.add_argument('--deep_supervision', default=False, type=str2bool)
     parser.add_argument('--input_channels', default=3, type=int, help='input channels')
     parser.add_argument('--num_classes', default=1, type=int, help='number of classes')
@@ -56,7 +56,7 @@ def parse_args():
                         help='loss: ' + ' | '.join(LOSS_NAMES) + ' (default: BCEDiceLoss)')
 
     # data
-    parser.add_argument('--dataset', default='ISIC2018', help='dataset name')  ### isic, busi, chasedb1, glas
+    parser.add_argument('--dataset', default='ISIC2018', help='dataset name')  
     parser.add_argument('--img_ext', default='.jpg', help='image file extension')
     parser.add_argument('--mask_ext', default='.png', help='masks file extension')
 
